@@ -1,9 +1,6 @@
 package pl.edu.agh.sr.zookeeper;
 
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.*;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -93,19 +90,29 @@ public class Executor implements Runnable, Watcher, DataMonitorListener {
         }
     }
 
-    public void printTree(String znode) {
-        String[] splitted = znode.split("/");
-        int count = splitted.length;
-        String prefix = IntStream.range(0, count - 2).mapToObj(i -> "\t").collect(Collectors.joining());
-
-        System.out.println(prefix + splitted[count - 1]);
+    void printTree(String znode) {
         try {
+            if (zooKeeper.exists(znode, false) == null) {
+                System.out.println("Nie ma takiego wezla.");
+                return;
+            }
+        } catch (KeeperException | InterruptedException e) {
+            System.out.println("exists error : " + e.getMessage());
+        }
+
+        try {
+            String[] splitted = znode.split("/");
+            int count = splitted.length;
+            String prefix = IntStream.range(0, count - 2).mapToObj(i -> "\t").collect(Collectors.joining());
+
+            System.out.println(prefix + splitted[count - 1]);
+
             zooKeeper.getChildren(znode, false)
                     .stream()
                     .map(child -> String.format("%s/%s", znode, child))
                     .forEachOrdered(this::printTree);
         } catch (KeeperException | InterruptedException e) {
-            e.printStackTrace();
+            System.out.println("getChildren error: " + e.getMessage());
         }
     }
 }

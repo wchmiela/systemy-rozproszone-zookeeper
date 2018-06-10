@@ -16,8 +16,10 @@ public class DataMonitor implements StatCallback, Watcher {
     private final String znode;
     private final Watcher chainedWatcher;
     private final DataMonitorListener listener;
-    public boolean dead;
+    boolean dead;
     private byte[] prevData;
+
+    private static int childrenCount;
 
     public DataMonitor(ZooKeeper zooKeeper, String znode, Watcher chainedWatcher, DataMonitorListener listener) {
         this.zooKeeper = zooKeeper;
@@ -65,36 +67,76 @@ public class DataMonitor implements StatCallback, Watcher {
                 || (b != null && !Arrays.equals(prevData, b))) {
             listener.exists(b);
             prevData = b;
+
+            try {
+                zooKeeper.getChildren(znode, this);
+            } catch (KeeperException | InterruptedException e) {
+                System.out.println("getChildren error: " + e.getMessage());
+            }
         }
     }
 
     @Override
     public void process(WatchedEvent event) {
         String path = event.getPath();
-        if (event.getType() == Event.EventType.None) {
-            // We are are being told that the state of the
-            // connection has changed
-            switch (event.getState()) {
-                case SyncConnected:
-                    // In this particular example we don't need to do anything
-                    // here - watches are automatically re-registered with
-                    // server and any watches triggered while the client was
-                    // disconnected will be delivered (in order of course)
-                    break;
-                case Expired:
-                    // It's all over
-                    dead = true;
-                    listener.closing(KeeperException.Code.SessionExpired);
-                    break;
-            }
-        } else {
-            if (path != null && path.equals(znode)) {
-                // Something has changed on the node, let's find out
-                zooKeeper.exists(znode, true, this, null);
-            }
+        switch (event.getType()) {
+            case None:
+                // We are are being told that the state of the
+                // connection has changed
+                switch (event.getState()) {
+                    case SyncConnected:
+                        // In this particular example we don't need to do anything
+                        // here - watches are automatically re-registered with
+                        // server and any watches triggered while the client was
+                        // disconnected will be delivered (in order of course)
+                        break;
+                    case Expired:
+                        // It's all over
+                        dead = true;
+                        listener.closing(Code.SessionExpired);
+                        break;
+                }
+                break;
+            case NodeChildrenChanged:
+                childrenCount = 0;
+                countChildren(znode);
+
+                System.out.println(String.format("Children count: %d", childrenCount));
+
+                try {
+                    zooKeeper.getChildren(znode, this);
+                } catch (KeeperException | InterruptedException e) {
+                    System.out.println("getChildren error: " + e.getMessage());
+                }
+
+                break;
+            default:
+                if (path != null && path.equals(znode)) {
+                    // Something has changed on the node, let's find out
+                    zooKeeper.exists(znode, true, this, null);
+                }
+                break;
         }
+
         if (chainedWatcher != null) {
             chainedWatcher.process(event);
+        }
+    }
+
+    private void countChildren(String znode) {
+        try {
+            childrenCount += zooKeeper.getChildren(znode, false).size();
+        } catch (KeeperException | InterruptedException e) {
+            System.out.println("getChildren error: " + e.getMessage());
+        }
+
+        try {
+            zooKeeper.getChildren(znode, false)
+                    .stream()
+                    .map(child -> String.format("%s/%s", znode, child))
+                    .forEachOrdered(this::countChildren);
+        } catch (KeeperException | InterruptedException e) {
+            System.out.println("getChildren error: " + e.getMessage());
         }
     }
 }
