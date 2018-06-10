@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+}
+
+group 'pl.edu.agh.sr.zookeeper'
+version '1.0'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.slf4j:slf4j-simple:1.7.25'
+    compile 'org.apache.zookeeper:zookeeper:3.4.12'
+}
+
+configurations.all {
+    exclude module: 'slf4j-log4j12'
+}
