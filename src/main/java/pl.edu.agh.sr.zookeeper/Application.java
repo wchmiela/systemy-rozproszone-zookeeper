@@ -6,25 +6,23 @@ import java.io.InputStreamReader;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Application {
+class Application {
 
     public static void main(String[] args) {
-        if (args.length < 3) {
-            System.err.println("USAGE: Executor hostPort znode filename program [args ...]");
+        if (args.length < 2) {
+            System.err.println("USAGE: Application port apps-to-run");
             System.exit(1);
         }
 
         String hostPort = args[0];
         String znode = Consts.NODE_NAME;
-        String filename = args[1];
-        String exec[] = new String[args.length - 2];
-        System.arraycopy(args, 2, exec, 0, exec.length);
-
+        String exec[] = new String[args.length - 1];
+        System.arraycopy(args, 1, exec, 0, exec.length);
 
         Executor executor = null;
 
         try {
-            executor = new Executor(hostPort, znode, filename, exec);
+            executor = new Executor(hostPort, znode, exec);
         } catch (Exception e) {
             System.out.println("Executor error: " + e.getMessage());
             System.exit(1);
@@ -35,11 +33,11 @@ public class Application {
 
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
 
-        System.out.println("Opcje: ");
-        System.out.println("\tprint tree - wyswietl drzewo");
-        System.out.println("\texit");
+        System.out.println("Options: ");
+        System.out.println("\tprint tree");
+        System.out.println("\t_ - exit");
 
-        System.out.print("Wczytaj opcje: ");
+        System.out.print("Read option: ");
 
         try {
 
@@ -50,6 +48,7 @@ public class Application {
                     executor.printTree(znode);
                 } else {
                     executorService.shutdown();
+                    break;
                 }
             }
         } catch (IOException e) {

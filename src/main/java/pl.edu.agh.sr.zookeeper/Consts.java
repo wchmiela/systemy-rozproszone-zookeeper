@@ -1,6 +1,6 @@
 package pl.edu.agh.sr.zookeeper;
 
-public class Consts {
+class Consts {
 
-    public static final String NODE_NAME = "/znode_testowy";
+    static final String NODE_NAME = "/znode_testowy";
 }

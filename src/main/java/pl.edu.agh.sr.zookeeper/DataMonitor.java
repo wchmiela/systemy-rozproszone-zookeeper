@@ -10,7 +10,7 @@ import org.apache.zookeeper.data.Stat;
 
 import java.util.Arrays;
 
-public class DataMonitor implements StatCallback, Watcher {
+class DataMonitor implements StatCallback, Watcher {
 
     private final ZooKeeper zooKeeper;
     private final String znode;
@@ -21,7 +21,7 @@ public class DataMonitor implements StatCallback, Watcher {
 
     private static int childrenCount;
 
-    public DataMonitor(ZooKeeper zooKeeper, String znode, Watcher chainedWatcher, DataMonitorListener listener) {
+    DataMonitor(ZooKeeper zooKeeper, String znode, Watcher chainedWatcher, DataMonitorListener listener) {
         this.zooKeeper = zooKeeper;
         this.znode = znode;
         this.chainedWatcher = chainedWatcher;
@@ -69,6 +69,14 @@ public class DataMonitor implements StatCallback, Watcher {
             prevData = b;
 
             try {
+                if (zooKeeper.exists(znode, false) == null) {
+                    return;
+                }
+            } catch (KeeperException | InterruptedException e) {
+                System.out.println("exists error : " + e.getMessage());
+            }
+
+            try {
                 zooKeeper.getChildren(znode, this);
             } catch (KeeperException | InterruptedException e) {
                 System.out.println("getChildren error: " + e.getMessage());
@@ -98,6 +106,14 @@ public class DataMonitor implements StatCallback, Watcher {
                 }
                 break;
             case NodeChildrenChanged:
+                try {
+                    if (zooKeeper.exists(znode, false) == null) {
+                        return;
+                    }
+                } catch (KeeperException | InterruptedException e) {
+                    System.out.println("exists error : " + e.getMessage());
+                }
+
                 childrenCount = 0;
                 countChildren(znode);
 
@@ -124,6 +140,14 @@ public class DataMonitor implements StatCallback, Watcher {
     }
 
     private void countChildren(String znode) {
+        try {
+            if (zooKeeper.exists(znode, false) == null) {
+                return;
+            }
+        } catch (KeeperException | InterruptedException e) {
+            System.out.println("exists error : " + e.getMessage());
+        }
+
         try {
             childrenCount += zooKeeper.getChildren(znode, false).size();
         } catch (KeeperException | InterruptedException e) {

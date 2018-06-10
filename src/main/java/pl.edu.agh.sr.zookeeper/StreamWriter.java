@@ -5,8 +5,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 class StreamWriter extends Thread {
-    OutputStream os;
-    InputStream is;
+    private final OutputStream os;
+    private final InputStream is;
 
     StreamWriter(InputStream is, OutputStream os) {
         this.is = is;

@@ -1,6 +1,6 @@
 package pl.edu.agh.sr.zookeeper;
 
-public interface DataMonitorListener {
+interface DataMonitorListener {
 
     void exists(byte data[]);
 

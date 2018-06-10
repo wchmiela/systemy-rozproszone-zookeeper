@@ -9,18 +9,14 @@ import java.util.stream.IntStream;
 
 public class Executor implements Runnable, Watcher, DataMonitorListener {
 
-    private final String filename;
     private final String[] exec;
-    private final String rootZnode;
-    ZooKeeper zooKeeper;
-    DataMonitor datamonitor;
-    Process child;
+    private final ZooKeeper zooKeeper;
+    private final DataMonitor datamonitor;
+    private Process child;
 
 
-    public Executor(String hostPort, String znode, String filename, String[] exec) throws IOException {
-        this.filename = filename;
+    Executor(String hostPort, String znode, String[] exec) throws IOException {
         this.exec = exec;
-        this.rootZnode = znode;
         zooKeeper = new ZooKeeper(hostPort, 1000, this);
         datamonitor = new DataMonitor(zooKeeper, znode, null, this);
     }
@@ -65,18 +61,10 @@ public class Executor implements Runnable, Watcher, DataMonitorListener {
                     e.printStackTrace();
                 }
             }
-            try {
-                FileOutputStream fos = new FileOutputStream(filename);
-                fos.write(data);
-                fos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
             try {
                 System.out.println("Starting child");
                 child = Runtime.getRuntime().exec(exec);
-                new StreamWriter(child.getInputStream(), System.out);
-                new StreamWriter(child.getErrorStream(), System.err);
             } catch (IOException e) {
                 e.printStackTrace();
             }
