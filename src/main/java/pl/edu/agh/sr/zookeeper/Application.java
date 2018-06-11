@@ -10,7 +10,7 @@ class Application {
 
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.err.println("USAGE: Application port apps-to-run");
+            System.err.println("USAGE: pl.edu.agh.sr.zookeeper.Application port apps-to-run");
             System.exit(1);
         }
 
@@ -24,7 +24,7 @@ class Application {
         try {
             executor = new Executor(hostPort, znode, exec);
         } catch (Exception e) {
-            System.out.println("Executor error: " + e.getMessage());
+            System.out.println("pl.edu.agh.sr.zookeeper.Executor error: " + e.getMessage());
             System.exit(1);
         }
 

@@ -2,7 +2,6 @@ package pl.edu.agh.sr.zookeeper;
 
 import org.apache.zookeeper.*;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
